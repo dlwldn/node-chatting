@@ -5,11 +5,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatting</title>
-    <link rel="stylesheet" href="">
+    <link rel="shortcut icon" href="#">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+        integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+        crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wrap-all {
+            width: 360px;
+            height: 600px;
+            background-image: linear-gradient(#12c2e9, #c471ed, #f64f59);
+            border-radius: 20px;
+            position: relative;
+            padding: 10px;
+        }
+
+        .header {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 20px 20px 0 0;
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info>img {
+            max-width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 10px 0 5px;
+        }
+
+        .user-info>h1 {
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .header-icon {
+            width: 25%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .main-content {
+            width: 100%;
+            height: 480px;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+
+        .chat-log {
+            display: flex;
+            position: relative;
+        }
+
+        .send {
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .send>p {
+            background-color: cornflowerblue;
+            color: white;
+            height: 30px;
+            border-radius: 30px;
+            line-height: 30px;
+            padding: 0 10px;
+            margin: 3px 0px;
+        }
+
+        .get {
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .get>p {
+            background-color: white;
+            color: black;
+            height: 30px;
+            border-radius: 30px;
+            line-height: 30px;
+            padding: 0 10px;
+            margin: 3px 0px;
+        }
+
+        .chat-log>span {
+            font-size: 9px;
+            color: black;
+            font-weight: 300;
+            margin: 0 6px;
+        }
+
+        .chat-input {
+            background-color: white;
+            width: 100%;
+            display: flex;
+            height: 50px;
+            border-radius: 30px;
+            padding: 10px 20px;
+            align-items: center;
+        }
+
+        .chat-input>input {
+            border: none;
+            margin-left: 5px;
+            width: 85%;
+            height: 30px;
+            padding: 10px;
+        }
+
+        .fa-paper-plane {
+            margin-left: auto;
+        }
+
+        .chat-input>a>.fas {
+            color: skyblue;
+        }
+
+        @media (max-width:600px) {
+            .wrap-all {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <h1>My Chatting App</h1>
+    <div class="wrap-all">
+        <div class="header">
+            <div class="user-info">
+                <i class="fas fa-chevron-left"></i>
+                <img src="assets/images/portrait-5378357_640.jpg" alt="유저이미지">
+                <h1>이지우</h1>
+            </div>
+
+            <div class="header-icon">
+                <i class="fas fa-video"></i>
+                <i class="fas fa-phone-alt"></i>
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- <div class="chat-log send">
+                <span>오전 : 11:00</span>
+                <p>할말~~~~wfw~</p>
+            </div> -->
+        </div>
+
+        <div class="chat-input">
+            <a href="#" class="plus"><i class="fas fa-plus-circle"></i></a>
+            <input type="text" class="message" placeholder="Type your message">
+            <a href="#" class="send"><i class="fas fa-paper-plane"></i></a>
+        </div>
+    </div>
+
+    <script>
+        // socket io 연결
+        const socket = io();
+        const message = document.querySelector(".message");
+        const sendButton = document.querySelector(".fa-paper-plane");
+        let today = new Date();
+
+
+        sendButton.addEventListener("click", () => {
+            // console.log(message.value);
+
+            // 서버로 보내는 역할
+            socket.emit('chatting', message.value);
+        })
+
+        message.addEventListener('keypress', (e) => {
+            console.log(e);
+            if (e.key === 'Enter') {
+                const message = document.querySelector(".message");
+
+                socket.emit('chatting', message.value);
+                message.value = "";
+            }
+
+        })
+
+
+        // 서버에서 받는역할
+        // 채팅이라는 채널을 만든다.
+        socket.on('chatting', (msg) => {
+
+            console.log(msg, 'from server');
+            const chatLog = document.querySelector(".main-content");
+            const div = document.createElement("div");
+            const p = document.createElement("p");
+            const txt = document.createTextNode(msg);
+            const span = document.createElement("span");
+
+            span.innerText = `오후 ${today.getHours() - 12}:${today.getMinutes()}`;
+            div.classList.add("chat-log");
+            div.classList.add("send");
+            p.appendChild(txt);
+            // p.innerHTML = `"<img src="assets/smile.png" alt="웃는이모티콘">"`;
+            div.appendChild(span);
+            div.appendChild(p);
+            chatLog.appendChild(div);
+            message.value = "";
+
+            //     span.innerText = `오후 ${today.getHours() - 12}:${today.getMinutes()}`;
+            //     div.classList.add("chat-log");
+            //     div.classList.add("get");
+            //     p.appendChild(txt);
+            //     div.appendChild(p);
+            //     div.appendChild(span);
+            //     chatLog.appendChild(div);
+            //     message.value = "";
+        })
+
+        // document.querySelector(".fa-plus-circle").addEventListener("click", () => {
+        //     message.value = "(이모티콘) ";
+        // })
+    </script>
 </body>
 
 </html>
